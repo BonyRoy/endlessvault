@@ -1,0 +1,1 @@
+{"root":["./src/app.tsx","./src/main.tsx","./src/vite-env.d.ts","./src/common files/carouselcomponent.jsx","./src/common files/confirmdialog.jsx","./src/common files/firebase.jsx","./src/context/commoncontext.jsx","./src/pages/admin.jsx","./src/pages/cart.jsx","./src/pages/footer.jsx","./src/pages/home.jsx","./src/pages/hotwheels.jsx"],"version":"5.8.3"}
