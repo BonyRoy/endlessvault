@@ -559,29 +559,26 @@ const Hotwheels = () => {
                   }}
                 />
 
-                {/* Camera flip button */}
-                {availableCameras.length > 1 && (
-                  <button
-                    onClick={toggleCamera}
-                    style={{
-                      position: 'absolute',
-                      top: '10px',
-                      right: '10px',
-                      backgroundColor: 'rgba(0,0,0,0.7)',
-                      color: 'white',
-                      border: 'none',
-                      borderRadius: '50%',
-                      width: '40px',
-                      height: '40px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      cursor: 'pointer',
-                    }}
-                  >
-                    <RotateCcw size={20} />
-                  </button>
-                )}
+                <button
+                  onClick={toggleCamera}
+                  style={{
+                    position: 'absolute',
+                    top: '10px',
+                    right: '10px',
+                    backgroundColor: 'rgba(0,0,0,0.7)',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '50%',
+                    width: '40px',
+                    height: '40px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    cursor: 'pointer',
+                  }}
+                >
+                  <RotateCcw size={20} />
+                </button>
               </div>
 
               <div

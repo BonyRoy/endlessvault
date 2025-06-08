@@ -339,7 +339,7 @@ const Home = () => {
         <input
           type="search"
           placeholder="Search by name, brand, series or ID"
-          style={{ padding: '5px', width: '100%' }}
+          style={{ padding: '5px', width: '100%', height: '100%' }}
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
