@@ -4,7 +4,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { db } from '../Common Files/firebase';
 import { addDoc, collection, query, where, getDocs } from 'firebase/firestore';
 import { CommonContext } from '../Context/CommonContext';
-import { Camera, UploadCloud, Home, Lock, User } from 'lucide-react';
+import { Camera, UploadCloud, Home, Lock, User, RotateCcw } from 'lucide-react';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import CarouselComponent from '../Common Files/CarouselComponent';
@@ -25,9 +25,44 @@ const Hotwheels = () => {
   const HARDCODED_USERNAME = 'siddhantroy225';
   const HARDCODED_PASSWORD = 'Lipi@2007';
 
+  // Camera states
+  const [facingMode, setFacingMode] = useState('environment'); // Start with back camera
+  const [availableCameras, setAvailableCameras] = useState([]);
+  const [cameraError, setCameraError] = useState('');
+
   useEffect(() => {
     const timer = setTimeout(() => setIsLoading(false), 2000);
     return () => clearTimeout(timer);
+  }, []);
+
+  // Get available cameras
+  useEffect(() => {
+    const getCameras = async () => {
+      try {
+        const devices = await navigator.mediaDevices.enumerateDevices();
+        const videoDevices = devices.filter(
+          (device) => device.kind === 'videoinput'
+        );
+        setAvailableCameras(videoDevices);
+
+        // Check if environment camera is available
+        const hasEnvironmentCamera = videoDevices.some(
+          (device) =>
+            device.label.toLowerCase().includes('back') ||
+            device.label.toLowerCase().includes('environment')
+        );
+
+        if (!hasEnvironmentCamera && videoDevices.length > 0) {
+          // If no environment camera, use user (front) camera
+          setFacingMode('user');
+        }
+      } catch (error) {
+        console.error('Error getting cameras:', error);
+        setCameraError('Unable to access cameras');
+      }
+    };
+
+    getCameras();
   }, []);
 
   const webcamRef = useRef(null);
@@ -94,6 +129,10 @@ const Hotwheels = () => {
     }));
   };
 
+  const toggleCamera = () => {
+    setFacingMode((prev) => (prev === 'environment' ? 'user' : 'environment'));
+  };
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -139,6 +178,13 @@ const Hotwheels = () => {
       console.error('Error saving to Firebase:', e);
       setError('Failed to save to Firebase');
     }
+  };
+
+  // Webcam constraints with fallback
+  const videoConstraints = {
+    facingMode: facingMode,
+    width: { ideal: 1280 },
+    height: { ideal: 720 },
   };
 
   if (isLoading) {
@@ -231,7 +277,7 @@ const Hotwheels = () => {
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                margin: '0 auto 20px',
+                margin: '0 auto 120px',
               }}
             >
               <Lock size={40} color="white" />
@@ -327,23 +373,6 @@ const Hotwheels = () => {
               Login
             </button>
           </form>
-
-          <div
-            style={{
-              marginTop: '20px',
-              padding: '15px',
-              backgroundColor: '#f8f9fa',
-              borderRadius: '8px',
-              fontSize: '14px',
-              color: '#666',
-            }}
-          >
-            <strong>Demo Credentials:</strong>
-            <br />
-            Username: admin
-            <br />
-            Password: vault123
-          </div>
         </div>
       </div>
     );
@@ -500,31 +529,92 @@ const Hotwheels = () => {
             marginTop: '10px',
           }}
         >
-          <Webcam
-            audio={false}
-            ref={webcamRef}
-            screenshotFormat="image/jpeg"
-            width={250}
-            height={200}
-            style={{ marginBottom: 10, borderRadius: '10px' }}
-          />
-          <button
-            onClick={handleCapture}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '8px',
-              padding: '8px 16px',
-              backgroundColor: 'black',
-              color: 'white',
-              border: '2px solid black',
-              cursor: 'pointer',
-            }}
-          >
-            <Camera size={18} />
-            Capture
-          </button>
+          {cameraError ? (
+            <div
+              style={{
+                color: 'red',
+                padding: '20px',
+                textAlign: 'center',
+                backgroundColor: '#ffe6e6',
+                borderRadius: '8px',
+                margin: '10px',
+              }}
+            >
+              {cameraError}
+            </div>
+          ) : (
+            <>
+              <div style={{ position: 'relative', marginBottom: '10px' }}>
+                <Webcam
+                  audio={false}
+                  ref={webcamRef}
+                  screenshotFormat="image/jpeg"
+                  width={250}
+                  height={200}
+                  style={{ borderRadius: '10px' }}
+                  videoConstraints={videoConstraints}
+                  onUserMediaError={(error) => {
+                    console.error('Webcam error:', error);
+                    setCameraError('Camera access denied or not available');
+                  }}
+                />
+
+                {/* Camera flip button */}
+                {availableCameras.length > 1 && (
+                  <button
+                    onClick={toggleCamera}
+                    style={{
+                      position: 'absolute',
+                      top: '10px',
+                      right: '10px',
+                      backgroundColor: 'rgba(0,0,0,0.7)',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '50%',
+                      width: '40px',
+                      height: '40px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    <RotateCcw size={20} />
+                  </button>
+                )}
+              </div>
+
+              <div
+                style={{
+                  fontSize: '12px',
+                  color: '#666',
+                  marginBottom: '10px',
+                  textAlign: 'center',
+                }}
+              >
+                Using:{' '}
+                {facingMode === 'environment' ? 'Back Camera' : 'Front Camera'}
+              </div>
+
+              <button
+                onClick={handleCapture}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '8px',
+                  padding: '8px 16px',
+                  backgroundColor: 'black',
+                  color: 'white',
+                  border: '2px solid black',
+                  cursor: 'pointer',
+                }}
+              >
+                <Camera size={18} />
+                Capture
+              </button>
+            </>
+          )}
         </div>
       )}
 
