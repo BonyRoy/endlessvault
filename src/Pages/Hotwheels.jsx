@@ -173,7 +173,7 @@ const Hotwheels = () => {
       setGeneratedJson(data);
       setError('');
       triggerReload();
-      toast.success('Saved to Firebase!');
+      // toast.success('Saved to Firebase!');
     } catch (e) {
       console.error('Error saving to Firebase:', e);
       setError('Failed to save to Firebase');

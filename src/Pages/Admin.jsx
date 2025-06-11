@@ -348,8 +348,8 @@ const Admin = () => {
       {/* Items display */}
       <div
         style={{
-          display: 'grid',
-          gridTemplateColumns: '1fr 1fr 1fr',
+          display: 'flex',
+          flexDirection: 'column',
           gap: '20px',
           opacity: itemsLoading ? 0.5 : 1,
           transition: 'opacity 0.3s ease',
