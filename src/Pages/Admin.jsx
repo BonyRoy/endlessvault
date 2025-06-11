@@ -348,8 +348,8 @@ const Admin = () => {
       {/* Items display */}
       <div
         style={{
-          display: 'flex',
-          flexWrap: 'wrap',
+          display: 'grid',
+          gridTemplateColumns: '1fr 1fr 1fr',
           gap: '20px',
           opacity: itemsLoading ? 0.5 : 1,
           transition: 'opacity 0.3s ease',
@@ -365,12 +365,10 @@ const Admin = () => {
                 display: 'flex',
                 flexDirection: 'row',
                 flexWrap: 'wrap',
-                width: '100%',
-                maxWidth: '600px',
                 border: '1px solid #ccc',
                 borderRadius: 10,
                 padding: 10,
-                boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.5)',
                 backgroundColor: 'white',
               }}
             >
@@ -391,7 +389,7 @@ const Admin = () => {
                 }}
               />
 
-              <div style={{ flex: 1 }}>
+              <div style={{ flex: 1, padding: '5px' }}>
                 <p>
                   <strong>ID:</strong> {item.uniqueId}
                 </p>
@@ -406,7 +404,18 @@ const Admin = () => {
                         style={{ marginLeft: '8px', padding: '4px' }}
                       >
                         <option value="Hotwheels">Hotwheels</option>
-                        <option value="Inno64">Inno64</option>
+                        <option value="MiniGT">MiniGT</option>
+                        <option value="POPRACE">POPRACE</option>
+                        <option value="INNO64">INNO64</option>
+                        <option value="BBURAGO">BBURAGO</option>
+                        <option value="MAISTO">MAISTO</option>
+                        <option value="MAJORETTE">MAJORETTE</option>
+                        <option value="TOMICA">TOMICA</option>
+                        <option value="GREENLIGHT">GREENLIGHT</option>
+                        <option value="AUTOWORLD">AUTOWORLD</option>
+                        <option value="JOHNNYIGHTNING">JOHNNYIGHTNING</option>
+                        <option value="MATCHBOX">MATCHBOX</option>
+                        <option value="SPECIALS">SPECIALS</option>
                       </select>
                     </div>
                     <div style={{ marginBottom: '8px' }}>

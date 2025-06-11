@@ -53,7 +53,7 @@ const CarouselComponent = () => {
 const styles = {
   container: {
     width: '100%',
-    maxWidth: '900px',
+    // maxWidth: '900px',
     margin: 'auto',
     position: 'relative',
     // backgroundColor: 'black',

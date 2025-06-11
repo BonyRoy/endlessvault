@@ -2,7 +2,14 @@ import React, { useContext, useEffect, useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { db } from '../Common Files/firebase';
 import { collection, getDocs } from 'firebase/firestore';
-import { Search, ShoppingCart, ChevronLeft, ChevronRight } from 'lucide-react';
+import {
+  Search,
+  ShoppingCart,
+  ChevronLeft,
+  ChevronRight,
+  X,
+  Check,
+} from 'lucide-react';
 import { CommonContext } from '../Context/CommonContext';
 import CarouselComponent from '../Common Files/CarouselComponent';
 
@@ -24,6 +31,10 @@ const Home = () => {
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsLoading, setItemsLoading] = useState(false);
+
+  // Notification modal state
+  const [showNotification, setShowNotification] = useState(false);
+  const [notificationItem, setNotificationItem] = useState(null);
 
   // Calculate pagination values
   const totalPages = Math.ceil(filteredItems.length / ITEMS_PER_PAGE);
@@ -144,6 +155,173 @@ const Home = () => {
     return range;
   };
 
+  // Handle add to cart with notification
+  const handleAddToCart = (item) => {
+    addToCart(item);
+    setNotificationItem(item);
+    setShowNotification(true);
+  };
+
+  const [viewingItem, setViewingItem] = useState(null);
+  const [showDetailView, setShowDetailView] = useState(false);
+
+  const handleViewItem = (item) => {
+    setViewingItem(item);
+    setShowDetailView(true);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleBackFromDetail = () => {
+    setShowDetailView(false);
+    setViewingItem(null);
+  };
+
+  // Close notification
+  const closeNotification = () => {
+    setShowNotification(false);
+  };
+
+  // Notification Modal Component
+  const NotificationModal = () => {
+    if (!showNotification || !notificationItem) return null;
+
+    return (
+      <div
+        style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(0, 0, 0, 0.5)',
+          zIndex: 1000,
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+        }}
+        onClick={closeNotification}
+      >
+        <div
+          style={{
+            backgroundColor: 'white',
+            borderRadius: '10px',
+            padding: '20px',
+            width: 'auto',
+            boxShadow: '0 10px 30px rgba(0, 0, 0, 0.3)',
+            position: 'relative',
+            transform: showNotification ? 'scale(1)' : 'scale(0.8)',
+            transition: 'transform 0.3s ease',
+          }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <button
+            onClick={closeNotification}
+            style={{
+              position: 'absolute',
+              top: '10px',
+              right: '10px',
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+              padding: '5px',
+            }}
+          >
+            <X size={20} color="#666" />
+          </button>
+
+          <div style={{ textAlign: 'center' }}>
+            <div
+              style={{
+                width: '60px',
+                height: '60px',
+                backgroundColor: '#4CAF50',
+                borderRadius: '50%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                margin: '0 auto 15px',
+              }}
+            >
+              <Check size={30} color="white" />
+            </div>
+
+            <h3 style={{ color: '#333', marginBottom: '10px' }}>
+              Added to Cart!
+            </h3>
+
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '15px',
+                marginBottom: '15px',
+              }}
+            >
+              <img
+                src={notificationItem.image}
+                alt={notificationItem.name}
+                style={{
+                  width: '60px',
+                  height: '60px',
+                  objectFit: 'cover',
+                  borderRadius: '8px',
+                }}
+              />
+              <div style={{ textAlign: 'left' }}>
+                <p style={{ fontWeight: 'bold', margin: '0 0 5px 0' }}>
+                  {notificationItem.name}
+                </p>
+                <p style={{ color: '#666', margin: '0 0 5px 0' }}>
+                  {notificationItem.brand}
+                </p>
+                <p
+                  style={{ color: '#007bff', fontWeight: 'bold', margin: '0' }}
+                >
+                  ₹{notificationItem.mrp}
+                </p>
+              </div>
+            </div>
+
+            <div
+              style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}
+            >
+              <button
+                onClick={closeNotification}
+                style={{
+                  padding: '10px 20px',
+                  backgroundColor: '#f8f9fa',
+                  color: '#333',
+                  border: '1px solid #ddd',
+                  borderRadius: '5px',
+                  cursor: 'pointer',
+                }}
+              >
+                Continue Shopping
+              </button>
+              <button
+                onClick={() => {
+                  closeNotification();
+                  navigate('/cart');
+                }}
+                style={{
+                  padding: '10px 20px',
+                  backgroundColor: '#007bff',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '5px',
+                  cursor: 'pointer',
+                }}
+              >
+                View Cart
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   // Pagination component
   const PaginationControls = () => {
     if (filteredItems.length <= ITEMS_PER_PAGE) return null;
@@ -229,7 +407,7 @@ const Home = () => {
         <div
           style={{
             height: '100vh',
-            width: '100vw',
+            width: '100%',
             background:
               'repeating-linear-gradient(45deg, white, white 10px, black 10px, black 20px)',
             display: 'flex',
@@ -275,316 +453,426 @@ const Home = () => {
       </div>
     );
   }
+  // Add this component inside your Home component or create it separately
+  const DetailView = () => {
+    if (!viewingItem) return null;
 
+    return (
+      <>
+        <div style={{ padding: '20px' }}>
+          {/* Back button */}
+          <button
+            onClick={handleBackFromDetail}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '5px',
+              marginBottom: '20px',
+              padding: '8px 12px',
+              backgroundColor: 'black',
+              border: '1px solid #ddd',
+              borderRadius: '5px',
+              cursor: 'pointer',
+              color: 'white',
+            }}
+          >
+            <ChevronLeft size={16} />
+            Back to Items
+          </button>
+
+          {/* Item details */}
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: '1fr 1fr',
+              maxWidth: '600px',
+              margin: '0 auto',
+              gap: '10px',
+            }}
+          >
+            <img
+              src={viewingItem.image}
+              alt={viewingItem.name}
+              style={{
+                width: '100%',
+                height: 'auto',
+                objectFit: 'cover',
+                borderRadius: '8px',
+                marginBottom: '20px',
+              }}
+            />
+
+            <div style={{ width: '100%', textAlign: 'left' }}>
+              <h2>{viewingItem.name}</h2>
+              <p>
+                <strong>Brand:</strong> {viewingItem.brand}
+              </p>
+              <p>
+                <strong>Series:</strong> {viewingItem.series}
+              </p>
+              {/* <p>
+              <strong>Unique ID:</strong> {viewingItem.uniqueId}
+            </p> */}
+              <p>
+                <strong>MRP:</strong> ₹{viewingItem.mrp}
+              </p>
+            </div>
+          </div>
+        </div>
+        <CarouselComponent />
+      </>
+    );
+  };
   return (
     <>
+      {/* Header with Search */}
       <div
         style={{
           backgroundColor: 'black',
           padding: '10px',
           boxShadow: '0px 4px 16px rgba(0,0,0,1)',
-          display: 'flex',
-          justifyContent: 'space-between',
         }}
       >
-        <h2 style={{ color: 'white' }}>
-          <span style={{ color: 'red' }}>Endless</span> Vault
-        </h2>
-        <div
-          style={{
-            position: 'relative',
-            display: 'inline-block',
-            cursor: 'pointer',
-          }}
-        >
-          <ShoppingCart
-            onClick={() => navigate('/cart')}
-            style={{ color: 'white' }}
-          />
-          {cartItemCount > 0 && (
-            <div
-              style={{
-                position: 'absolute',
-                top: '-8px',
-                right: '-8px',
-                backgroundColor: 'red',
-                color: 'white',
-                borderRadius: '50%',
-                width: '20px',
-                height: '20px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: '12px',
-                fontWeight: 'bold',
-                minWidth: '20px',
-              }}
-            >
-              {cartItemCount > 99 ? '99+' : cartItemCount}
-            </div>
-          )}
-        </div>
-      </div>
-      <br />
-
-      {/* Search Section */}
-      <div
-        style={{
-          padding: '10px',
-          display: 'grid',
-          gridTemplateColumns: '3fr 1fr',
-          gap: '5px',
-        }}
-      >
-        <input
-          type="search"
-          placeholder="Search by name, brand, series or ID"
-          style={{ padding: '5px', width: '100%', height: '100%' }}
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
-        />
-        <button
-          style={{
-            padding: '5px',
-            color: 'white',
-            backgroundColor: 'black',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            cursor: 'pointer',
-          }}
-          onClick={handleSearch}
-        >
-          <Search size={16} />
-        </button>
-      </div>
-
-      {/* Filter Section */}
-      <div
-        style={{
-          padding: '10px',
-          display: 'grid',
-          gridTemplateColumns: '1fr 1fr',
-          gap: '10px',
-        }}
-      >
-        <select
-          value={brandFilter}
-          onChange={(e) => setBrandFilter(e.target.value)}
-          style={{
-            padding: '8px',
-            border: '1px solid #ccc',
-            borderRadius: '4px',
-            fontSize: '14px',
-          }}
-        >
-          <option value="">All Brands</option>
-          <option value="Hotwheels">Hotwheels</option>
-          <option value="MiniGT">MiniGT</option>
-          <option value="POPRACE">POPRACE</option>
-          <option value="INNO64">INNO64</option>
-          <option value="BBURAGO">BBURAGO</option>
-          <option value="MAISTO">MAISTO</option>
-          <option value="MAJORETTE">MAJORETTE</option>
-          <option value="TOMICA">TOMICA</option>
-          <option value="GREENLIGHT">GREENLIGHT</option>
-          <option value="AUTOWORLD">AUTOWORLD</option>
-          <option value="JOHNNYIGHTNING">JOHNNYIGHTNING</option>
-          <option value="MATCHBOX">MATCHBOX</option>
-          <option value="SPECIALS">SPECIALS</option>
-        </select>
-
-        <select
-          value={sortFilter}
-          onChange={(e) => setSortFilter(e.target.value)}
-          style={{
-            padding: '8px',
-            border: '1px solid #ccc',
-            borderRadius: '4px',
-            fontSize: '14px',
-          }}
-        >
-          <option value="">Sort by Price</option>
-          <option value="low-to-high">Low to High</option>
-          <option value="high-to-low">High to Low</option>
-        </select>
-      </div>
-
-      {dataLoading && (
-        <div style={{ textAlign: 'center', padding: '20px' }}>
-          Loading items...
-        </div>
-      )}
-
-      {/* Results summary */}
-      {!dataLoading &&
-        filteredItems.length > 0 &&
-        (searchQuery || brandFilter || sortFilter) && (
-          <div style={{ padding: '20px' }}>
-            <h3 style={{ marginBottom: '20px' }}>
-              {searchQuery ? 'Search Results' : 'Filtered Results'} (
-              {filteredItems.length} items found)
-              {filteredItems.length > ITEMS_PER_PAGE &&
-                ` - Page ${currentPage} of ${totalPages}`}
-            </h3>
-          </div>
-        )}
-
-      {/* No results message */}
-      {!dataLoading &&
-        filteredItems.length === 0 &&
-        (searchQuery || brandFilter) && (
-          <div style={{ textAlign: 'center', padding: '40px' }}>
-            <p style={{ color: '#666', fontSize: '16px' }}>
-              No items found matching your filters.
-            </p>
-            <button
-              onClick={() => {
-                setSearchQuery('');
-                setBrandFilter('');
-                setSortFilter('');
-              }}
-              style={{
-                marginTop: '10px',
-                padding: '8px 16px',
-                backgroundColor: '#007bff',
-                color: 'white',
-                border: 'none',
-                borderRadius: '5px',
-                cursor: 'pointer',
-              }}
-            >
-              Clear Filters
-            </button>
-          </div>
-        )}
-
-      {/* Loading indicator for pagination */}
-      {itemsLoading && (
+        {/* Top row with title and cart */}
         <div
           style={{
             display: 'flex',
-            justifyContent: 'center',
             alignItems: 'center',
-            padding: '20px',
-            color: '#666',
+            justifyContent: 'space-between',
+            marginBottom: '10px',
           }}
         >
-          Loading items...
-        </div>
-      )}
+          <h2 style={{ color: 'white', margin: 0 }}>
+            <span style={{ color: 'red' }}>Endless</span> Vault
+          </h2>
 
-      {/* Items Display Section */}
-      <div
-        id="items-section"
-        style={{
-          display: 'flex',
-          flexWrap: 'wrap',
-          gap: '20px',
-          padding:
-            searchQuery || brandFilter || sortFilter
-              ? '0 20px 20px 20px'
-              : '20px',
-          opacity: itemsLoading ? 0.5 : 1,
-          transition: 'opacity 0.3s ease',
-        }}
-      >
-        {currentItems.map((item) => (
           <div
-            key={item.id}
             style={{
-              display: 'flex',
-              flexDirection: 'row',
-              flexWrap: 'wrap',
-              width: '100%',
-              maxWidth: '600px',
-              border: '1px solid #ccc',
-              borderRadius: 10,
-              padding: 10,
-              boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-              backgroundColor: 'white',
+              position: 'relative',
+              display: 'inline-block',
+              cursor: 'pointer',
             }}
           >
-            <img
-              src={item.image}
-              alt="Preview"
-              style={{
-                width: 120,
-                height: 140,
-                objectFit: 'cover',
-                borderRadius: 8,
-                marginRight: 15,
-              }}
-              loading="lazy" // Native lazy loading for images
-              onError={(e) => {
-                e.target.style.backgroundColor = '#f0f0f0';
-                e.target.alt = 'Image not available';
-              }}
+            <ShoppingCart
+              onClick={() => navigate('/cart')}
+              style={{ color: 'white' }}
             />
-
-            <div style={{ flex: 1 }}>
-              <p>
-                <strong>ID:</strong> {item.uniqueId}
-              </p>
-              <p>
-                <strong>Brand:</strong> {item.brand}
-              </p>
-              <p>
-                <strong>Name:</strong> {item.name}
-              </p>
-              <p>
-                <strong>Series:</strong> {item.series}
-              </p>
-              <p>
-                <strong>MRP:</strong> ₹{item.mrp}
-              </p>
-
-              <button
-                onClick={() => addToCart(item)}
+            {cartItemCount > 0 && (
+              <div
                 style={{
-                  marginTop: '10px',
-                  padding: '8px 16px',
-                  backgroundColor: '#007bff',
+                  position: 'absolute',
+                  top: '-8px',
+                  right: '-8px',
+                  backgroundColor: 'red',
                   color: 'white',
-                  border: 'none',
-                  borderRadius: '5px',
-                  cursor: 'pointer',
-                  fontSize: '14px',
+                  borderRadius: '50%',
+                  width: '20px',
+                  height: '20px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '12px',
                   fontWeight: 'bold',
-                  transition: 'background-color 0.2s ease',
-                }}
-                onMouseOver={(e) => {
-                  e.target.style.backgroundColor = '#0056b3';
-                }}
-                onMouseOut={(e) => {
-                  e.target.style.backgroundColor = '#007bff';
+                  minWidth: '20px',
                 }}
               >
-                Add to Cart
-              </button>
-            </div>
+                {cartItemCount > 99 ? '99+' : cartItemCount}
+              </div>
+            )}
           </div>
-        ))}
-      </div>
+        </div>
 
-      {/* Pagination Controls */}
-      <PaginationControls />
-
-      {/* Only show carousel when not filtering/searching or when no items match */}
-      {!searchQuery && !brandFilter && !sortFilter && (
-        <>
-          <CarouselComponent />
-          <h4
+        {/* Search Bar - Full width on mobile */}
+        {!showDetailView && (
+          <div
             style={{
               display: 'flex',
               alignItems: 'center',
-              justifyContent: 'center',
-              padding: '8px',
+              width: '100%',
+              gap: '5px',
             }}
           >
-            Living the miniature dream — one diecast at a time!
-          </h4>
+            <input
+              type="search"
+              placeholder="Search..."
+              style={{
+                padding: '8px 12px',
+                flex: 1,
+                borderRadius: '5px',
+                border: '1px solid #ccc',
+                fontSize: '14px',
+                minWidth: 0, // Allow input to shrink
+              }}
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
+            />
+            <button
+              style={{
+                padding: '8px 12px',
+                color: 'white',
+                backgroundColor: '#007bff',
+                border: 'none',
+                borderRadius: '5px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: 'pointer',
+                flexShrink: 0, // Prevent button from shrinking
+              }}
+              onClick={handleSearch}
+            >
+              <Search size={16} />
+            </button>
+          </div>
+        )}
+      </div>
+
+      {showDetailView ? (
+        <DetailView />
+      ) : (
+        <>
+          <br />
+          {/* Filter Section */}
+          <div
+            style={{
+              padding: '10px',
+              display: 'grid',
+              gridTemplateColumns: '1fr 1fr',
+              gap: '10px',
+            }}
+          >
+            <select
+              value={brandFilter}
+              onChange={(e) => setBrandFilter(e.target.value)}
+              style={{
+                padding: '8px',
+                border: '1px solid #ccc',
+                borderRadius: '4px',
+                fontSize: '14px',
+              }}
+            >
+              <option value="">All Brands</option>
+              <option value="Hotwheels">Hotwheels</option>
+              <option value="MiniGT">MiniGT</option>
+              <option value="POPRACE">POPRACE</option>
+              <option value="INNO64">INNO64</option>
+              <option value="BBURAGO">BBURAGO</option>
+              <option value="MAISTO">MAISTO</option>
+              <option value="MAJORETTE">MAJORETTE</option>
+              <option value="TOMICA">TOMICA</option>
+              <option value="GREENLIGHT">GREENLIGHT</option>
+              <option value="AUTOWORLD">AUTOWORLD</option>
+              <option value="JOHNNYIGHTNING">JOHNNYIGHTNING</option>
+              <option value="MATCHBOX">MATCHBOX</option>
+              <option value="SPECIALS">SPECIALS</option>
+            </select>
+
+            <select
+              value={sortFilter}
+              onChange={(e) => setSortFilter(e.target.value)}
+              style={{
+                padding: '8px',
+                border: '1px solid #ccc',
+                borderRadius: '4px',
+                fontSize: '14px',
+              }}
+            >
+              <option value="">Sort by Price</option>
+              <option value="low-to-high">Low to High</option>
+              <option value="high-to-low">High to Low</option>
+            </select>
+          </div>
+
+          {dataLoading && (
+            <div style={{ textAlign: 'center', padding: '20px' }}>
+              Loading items...
+            </div>
+          )}
+
+          {/* Results summary */}
+          {!dataLoading &&
+            filteredItems.length > 0 &&
+            (searchQuery || brandFilter || sortFilter) && (
+              <div style={{ padding: '20px' }}>
+                <h3 style={{ marginBottom: '20px' }}>
+                  {searchQuery ? 'Search Results' : 'Filtered Results'} (
+                  {filteredItems.length} items found)
+                  {filteredItems.length > ITEMS_PER_PAGE &&
+                    ` - Page ${currentPage} of ${totalPages}`}
+                </h3>
+              </div>
+            )}
+
+          {/* No results message */}
+          {!dataLoading &&
+            filteredItems.length === 0 &&
+            (searchQuery || brandFilter) && (
+              <div style={{ textAlign: 'center', padding: '40px' }}>
+                <p style={{ color: '#666', fontSize: '16px' }}>
+                  No items found matching your filters.
+                </p>
+                <button
+                  onClick={() => {
+                    setSearchQuery('');
+                    setBrandFilter('');
+                    setSortFilter('');
+                  }}
+                  style={{
+                    marginTop: '10px',
+                    padding: '8px 16px',
+                    backgroundColor: '#007bff',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '5px',
+                    cursor: 'pointer',
+                  }}
+                >
+                  Clear Filters
+                </button>
+              </div>
+            )}
+
+          {/* Loading indicator for pagination */}
+          {itemsLoading && (
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+                padding: '20px',
+                color: '#666',
+              }}
+            >
+              Loading items...
+            </div>
+          )}
+
+          {/* Items Display Section */}
+          <div
+            id="items-section"
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+              gap: '20px',
+              padding:
+                searchQuery || brandFilter || sortFilter
+                  ? '0 20px 20px 20px'
+                  : '20px',
+              opacity: itemsLoading ? 0.5 : 1,
+              transition: 'opacity 0.3s ease',
+            }}
+          >
+            {currentItems.map((item) => (
+              <div
+                key={item.id}
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  border: '1px solid #ccc',
+                  borderRadius: 10,
+                  padding: 15,
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.5)',
+                  backgroundColor: 'white',
+                  minWidth: '280px',
+                }}
+              >
+                <img
+                  src={item.image}
+                  alt="Preview"
+                  style={{
+                    width: '100%',
+                    height: '200px',
+                    objectFit: 'cover',
+                    borderRadius: 8,
+                    marginBottom: '10px',
+                  }}
+                  loading="lazy" // Native lazy loading for images
+                  onError={(e) => {
+                    e.target.style.backgroundColor = '#f0f0f0';
+                    e.target.alt = 'Image not available';
+                  }}
+                />
+
+                <div style={{ width: '100%' }}>
+                  <p>
+                    <strong>Brand:</strong> {item.brand}
+                  </p>
+                  <p>
+                    <strong>Name:</strong> {item.name}
+                  </p>
+                  <p>
+                    <strong>Series:</strong> {item.series}
+                  </p>
+                  <p>
+                    <strong>MRP:</strong> ₹{item.mrp}
+                  </p>
+                  <div
+                    style={{
+                      display: 'grid',
+                      gridTemplateColumns: '1fr 1fr',
+                      gap: '10px',
+                    }}
+                  >
+                    <button
+                      onClick={() => handleAddToCart(item)}
+                      style={{
+                        marginTop: '10px',
+                        padding: '8px 16px',
+                        backgroundColor: '#007bff',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '5px',
+                        cursor: 'pointer',
+                        fontSize: '14px',
+                        fontWeight: 'bold',
+                        transition: 'background-color 0.2s ease',
+                      }}
+                      onMouseOver={(e) => {
+                        e.target.style.backgroundColor = '#0056b3';
+                      }}
+                      onMouseOut={(e) => {
+                        e.target.style.backgroundColor = '#007bff';
+                      }}
+                    >
+                      Add to Cart
+                    </button>
+                    <button
+                      onClick={() => handleViewItem(item)}
+                      style={{
+                        marginTop: '10px',
+                        padding: '8px 16px',
+                        backgroundColor: '#007bff',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '5px',
+                        cursor: 'pointer',
+                        fontSize: '14px',
+                        fontWeight: 'bold',
+                        transition: 'background-color 0.2s ease',
+                      }}
+                    >
+                      View
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Pagination Controls */}
+          <PaginationControls />
+
+          {/* Only show carousel when not filtering/searching or when no items match */}
+          {!searchQuery && !brandFilter && !sortFilter && (
+            <>
+              <CarouselComponent />
+            </>
+          )}
+
+          {/* Notification Modal */}
+          <NotificationModal />
         </>
       )}
     </>

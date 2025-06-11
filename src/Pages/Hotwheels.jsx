@@ -381,7 +381,7 @@ const Hotwheels = () => {
   return (
     <div
       style={{
-        width: '100vw',
+        width: '100%',
       }}
     >
       <ToastContainer
@@ -651,17 +651,17 @@ const Hotwheels = () => {
         >
           <option value="Hotwheels">Hotwheels</option>
           <option value="minigt">MiniGT</option>
-          <option value="minigt">POPRACE</option>
-          <option value="minigt">INNO64</option>
-          <option value="minigt">BBURAGO</option>
-          <option value="minigt">MAISTO</option>
-          <option value="minigt">MAJORETTE</option>
-          <option value="minigt">TOMICA</option>
-          <option value="minigt">GREENLIGHT</option>
-          <option value="minigt">AUTOWORLD</option>
-          <option value="minigt">JOHNNYIGHTNING</option>
-          <option value="minigt">MATCHBOX</option>
-          <option value="minigt">SPECIALS</option>
+          <option value="POPRACE">POPRACE</option>
+          <option value="INNO64">INNO64</option>
+          <option value="BBURAGO">BBURAGO</option>
+          <option value="MAISTO">MAISTO</option>
+          <option value="MAJORETTE">MAJORETTE</option>
+          <option value="TOMICA">TOMICA</option>
+          <option value="GREENLIGHT">GREENLIGHT</option>
+          <option value="AUTOWORLD">AUTOWORLD</option>
+          <option value="JOHNNYIGHTNING">JOHNNYIGHTNING</option>
+          <option value="MATCHBOX">MATCHBOX</option>
+          <option value="SPECIALS">SPECIALS</option>
         </select>
 
         <input

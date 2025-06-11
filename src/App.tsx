@@ -17,7 +17,7 @@ const App = () => {
         </Routes>
         <Footer />
       </Router>
-      <div style={{ height: '65px' }} />
+      <div style={{ height: '55px' }} />
     </ContextProvider>
   );
 };
