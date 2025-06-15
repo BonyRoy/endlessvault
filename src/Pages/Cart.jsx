@@ -467,6 +467,7 @@ const Cart = () => {
             onMouseOut={(e) => {
               e.target.style.backgroundColor = '#28a745';
             }}
+            onClick={() => navigate('/payment')}
           >
             Proceed to Checkout
           </button>

@@ -5,6 +5,7 @@ import Footer from './Pages/Footer';
 import Hotwheels from './Pages/Hotwheels';
 import Home from './Pages/Home';
 import Cart from './Pages/Cart';
+import Payment from './Pages/Payment';
 
 const App = () => {
   return (
@@ -14,6 +15,7 @@ const App = () => {
           <Route path="/" element={<Home />} />
           <Route path="/Admin" element={<Hotwheels />} />
           <Route path="/Cart" element={<Cart />} />
+          <Route path="/Payment" element={<Payment />} />
         </Routes>
         <Footer />
       </Router>
